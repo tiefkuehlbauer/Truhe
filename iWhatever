@@ -1,0 +1,316 @@
+set cut_paste_input [stack 0]
+version 11.2 v4
+push $cut_paste_input
+Group {
+name iWhatever1
+help AA
+tile_color 0x333333ff
+note_font_color 0xff5f00ff
+selected true
+xpos 1839
+ypos 22516
+addUserKnob {20 User}
+addUserKnob {26 firstly l "" -STARTLINE T "\n1. Grab or update driver node: \n"}
+addUserKnob {22 grabDriver l "Grab Driver Node" t "Grab the driving Node. Needs to be clicked everytime the driving Node gets replaced." T "import copy\n\n#clear non-needed nodes\ndef clear():\t\t\t\n    for n in nuke.allNodes():\n        if not ((n.name() == 'BaseInput') or (n.name()=='Output') or (n.name()=='genSwitch') or  (n.name()==\"dummyDefaultValues\") or (n.name()=='DriverInput') or ( n.name()=='Plate') or (n.name() == 'End') or (n.name()==\"Controller\") or (n.name()==\"dummyDriver\") or (n.name()==\"Mask\") or (n.name()==\"MaskInput\")):\n            nuke.delete(n)\n            \n\t\t\t\n\t\t\t\n# gather needed nodes\ngroup=nuke.thisGroup()\ngrp = group.name()\nDriverValueDict=\{\}\ngrabDriver=nuke.thisNode().input(2)\n\n# copy and paste driver node\nwith nuke.toNode('root'):\n\tfor n in nuke.selectedNodes():\n\t\tn.setSelected(False)\n\tgrabDriver.setSelected(True)\n\tnuke.nodeCopy(\"%clipboard%\")\n\nwith nuke.toNode(grp):  #access group\n\tcopyNode = nuke.nodePaste(\"%clipboard%\")\n\tcopyNode.setSelected(False)\n\tnuke.show(copyNode)\n\t\n\t# create a list of all present control knobs and remaining control knobs to be deleted\n\ttry:\n\t\tdeletablefinList= finList\[:]\n\t\tlen_deletablefinList= len(deletablefinList)\n\texcept:\n\t\tpass\n\t\t\n\ttry:\n\t\tdeletableRemainingKnobList = remainingKnobList\[:]\n\t\tlenDeletableRemainingKnobList = len(deletableRemainingKnobList)\n\texcept:\n\t\tpass\n\t\t\n\t# gather position, replace driver and clear unneeded nodes\t\n\tposX = nuke.toNode(grp+'.DriverInput').xpos()\n\tposY = nuke.toNode(grp+\".DriverInput\").ypos()\n\t\n\tfor n in nuke.allNodes():\n\t\tif n.name() == \"dummyDriver\":\n\t\t\tn.setName(\"OLDdummyDriverNode\")\n\t\t\t\n\tcopyNode.setName(\"dummyDriver\")\n\tcopyNode.setXpos(posX)\n\tcopyNode.setYpos(posY+150)\n\n\tclear()\n\t\n\t# done to trigger the callback\n\tnuke.toNode(grp+'.Controller').setSelected(True)\n\n\n\t# list of knobs that are ignored, add more as needed\n\tnoChangeKnobs=\['whitepoint_panelDropped', \"User\" ,  \"window\" , \"lock_connections\" , \"mapsize\" , 'enable_mix_luminance', 'multiply_panelDropped', \"endGroup\" , 'black_clamp', 'white_clamp', 'unpremult', 'gamma_panelDropped', 'invert_unpremult',  'add_panelDropped', 'black_panelDropped',  'blackpoint_panelDropped', 'reverse', 'mix_luminance', 'white_panelDropped' ,'ratio', 'method' , 'clamp', 'clip', 'invert_matrix', 'matrix', 'motionblur', 'shutter_offset', 'shuttercustomoffset', 'shutteroffset','shutter', 'skew_order', 'black_outside','layer', 'channel', 'enable', 'maskChannel', 'mask', \"autolabel\" , \"bookmark\" , \"cached\" , \"channels\" , \"crop\" , \"disable\" , \"dope_sheet\" , \"filter\" , \"fringe\" , \"gl_color\" , \"help\" , \"hide_input\" , \"icon\" , \"indicators\" , \"inject\" , \"invert_mask\" , \"knobChanged\" , \"label\" , \"lifetimeEnd\" , \"lifetimeStart\" , \"Mask\" , \"maskChannelInput\" , \"maskChannelMask\" , \"maskFrom\" , \"maskFromFlag\" , \"mix\" , \"name\" , \"note_font\" , \"note_font_color\" , \"note_font_size\" , \"onCreate\" , \"onDestroy\" , \"panel\" , \"postage_stamp\" , \"postage_stamp_frame\" , \"process_mask\" , \"quality\" , \"selected\" , \"tile_color\" , \"updateUI\" , \"useLifetime\" , \"xpos\" , \"ypos\"]\n\n\n\n\tfor n in nuke.selectedNodes():\t\t\t\t\t\t\t\t\n\t\t\tn.setSelected(False)\n\t\t\t\n\t\t\t\n\t# create a default node to gather default knob values from\n\tdummy= nuke.toNode(grp+\".dummyDriver\")\t\n\tdummy.setSelected(True)\n\tnuke.nodeCopy(\"%clipboard%\")\n\tdummyKnobDefaulter=nuke.nodePaste(\"%clipboard%\")\n\tdummyKnobDefaulter.resetKnobsToDefault()\n\tdummyKnobDefaulter.setName(\"dummyDefaultValues\")\n\n\n\tallKnobsList=\[]\n\tfor i in dummy.knobs():\n\t\tallKnobsList.append( str(i))\n\n\n\t\n\tdrivingKnobList = \[item for item in allKnobsList if item not in noChangeKnobs]\n\n\tlength=len(drivingKnobList)\n\tfinList=\[]\n\t\n\t\t\n\tfor x in range (0, length):\n\n\t\ttry:\n\t\t\tif dummy.knob(drivingKnobList\[x]).value() != dummyKnobDefaulter.knob(drivingKnobList\[x]).value():\n\t\t\t\tfinList.append(dummy.knob(drivingKnobList\[x]).name())\t\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\n\t\texcept:\n\t\t\tpass\n\t\t\t\n\tlen_finList= len(finList)\n\t\n\tremainingKnobList = \[item for item in drivingKnobList if item not in finList]\n\n\t\n\t# deleting the knob control knobs\n\t\n\ttry:\n\t\tgroup.removeKnob(group.knob(\"spacer\"))\n\t\t\n\t\t\n\texcept:\n\t\tpass\n\t\n\ttry:\n\t\tgroup.removeKnob(group.knob(\"info\"))\n\t\t\n\t\t\n\texcept:\n\t\tpass\n\t\t\n\ttry:\n\t\tgroup.removeKnob(group.knob(\"infoDivider\"))\n\t\t\n\t\t\n\texcept:\n\t\tpass\n\t\t\n\t\n\ttry:\n\t\tgroup.removeKnob(group.knob(\"endGroup\"))\n\t\t\n\t\t\n\texcept:\n\t\tpass\n\t\n\t\n\t\t\n\t\t\n\ttry:\n\t\tfor n in deletablefinList:\n\t\t\tknobName=str(n)+\"MinimumValue\"\n\t\t\tgroup.removeKnob(group.knob(knobName))\n\t\t\n\t\t\n\texcept:\n\t\tpass\n\t\t\n\ttry:\n\t\tfor n in deletablefinList:\n\t\t\t\t\t\n\t\t\tgroup.removeKnob(group.knob(n)) \n\t\t\n\texcept:\n\t\tpass\t\n\n\ttry:\n\t\n\t\tfor n in deletableRemainingKnobList:\n\t\t\t\t\n\t\t\tgroup.removeKnob(group.knob(n))\t\t\n\t\n\texcept:\n\t\tpass\n\t\t\n\ttry:\n\t\n\t\tfor n in deletableRemainingKnobList:\n\t\t\n\t\t\tknobName=str(n)+\"MinimumValue\"\n\t\t\tgroup.removeKnob(group.knob(knobName))\n\t\t\n\t\n\t\n\texcept:\n\t\tpass\n\n\t\t\t\n\ttry:\n\t\tgroup.removeKnob(group.knob(\"RemainingKnobs\"))\n\texcept:\n\t\tpass\n\t\t\n\ttry:\n\t\tgroup.removeKnob(group.knob(\"warning\"))\n\t\tgroup.removeKnob(group.knob(\"warning2\"))\n\texcept:\n\t\tpass\n\t\t\t\n\t\n\t\n\t# creating the knob control knobs\n\t\n\t\n\tif len_finList ==0:\n\t\ttextKnob = nuke.Text_Knob(\"warning\", \"\" , \"No values were changed in your driver.\" )\n\t\ttextKnob2 = nuke.Text_Knob(\"warning2\", \"\" , \"If that was on purpose all knobs can be found in the dropdown below.\")\n\n\t\tgroup.addKnob(textKnob)\n\t\tgroup.addKnob(textKnob2)\n\t\t\n\n\t\t\n\tfor n in range (0, len_finList):\n\t\t\n\t\tbutton1= nuke.Boolean_Knob(finList\[n], finList\[n])\n\t\tbutton1.setFlag(nuke.STARTLINE)\n\t\tbutton1.setValue(1)\n\t\t\n\t\tbut2Name=finList\[n]+\"MinimumValue\"\n\t\t\n\t\t\n\t\t\n\t\ttempMinKnob=dummyKnobDefaulter.knob(finList\[n])\t\t\n\t\t\t\n\t\t\t\t\n\t\t# any non single value knobs for the default minimums are created\n\t\tif type(tempMinKnob.getValue()) == list :\n\t\t\n\t\t\tlenTempMinKnob=len(tempMinKnob.getValue())\t\t\n\t\t\tbutton2= nuke.Array_Knob(but2Name , \"          minimum Value\", lenTempMinKnob)\n\t\t\t\n\t\t\tfor h in range(0, lenTempMinKnob):\n\t\t\t\tbutton2.setValue(tempMinKnob.getValue(), h)\n\t\t\t\n\t\t\t\n\t\t# single value minimum value knobs are created\t\n\t\telse:\n\t\t\t\n\t\t\tbutton2= nuke.Array_Knob(but2Name , \"          minimum Value\", 1)\n\t\t\tbutton2.setValue(dummyKnobDefaulter.knob(finList\[n]).getValue())\n\t\t\n\t\t\n\t\tbutton2.clearFlag(nuke.STARTLINE)\t\n\t\tgroup.addKnob(button1)\n\t\tgroup.addKnob(button2)\n\t\t\n\n\t\n\t\n\t\n\t# check for existing dropdown of remaining knobs, if not present create\n\tif group.knob(\"RemainingKnobs\") == None:\n\t\tgroupKnob= nuke.Tab_Knob( \"RemainingKnobs\", \"RemainingKnobs\", 2)\n\t\tgroup.addKnob(groupKnob)\n\t\tknobs = group.knobs()\n\t\n\t# populate dropdown of remaining knobs\n\tlenRemaiKnobList = len(remainingKnobList)\n\t\t\t\n\tfor n in range (0, lenRemaiKnobList):\n\t\t\n\t\tbutton1= nuke.Boolean_Knob(remainingKnobList\[n], remainingKnobList\[n])\n\t\t\n\t\t\n\t\tbut2Name=remainingKnobList\[n]+\"MinimumValue\"\n\t\t\n\t\t\n\t\t\n\t\ttempMinKnob=dummyKnobDefaulter.knob(remainingKnobList\[n])\t\t\n\t\t\t\n\t\t\t\t\n\t\t# any non single value knobs for the default minimums are created\n\t\tif type(tempMinKnob.getValue()) == list :\n\t\t\n\t\t\tlenTempMinKnob=len(tempMinKnob.getValue())\t\t\n\t\t\tbutton2= nuke.Array_Knob(but2Name , \"          minimum Value\", lenTempMinKnob)\n\t\t\t\n\t\t\tfor h in range(0, lenTempMinKnob):\n\t\t\t\tbutton2.setValue(tempMinKnob.getValue(), h)\n\t\t\t\n\t\t\t\n\t\t# single value minimum value knobs are created\t\n\t\telse:\n\t\t\t\n\t\t\tbutton2= nuke.Array_Knob(but2Name , \"          minimum Value\", 1)\n\t\t\tbutton2.setValue(dummyKnobDefaulter.knob(remainingKnobList\[n]).getValue())\t\n\t\t\n\n\t\t\n\t\t\n\t\tbutton1.setFlag(nuke.STARTLINE)\n\t\tbutton2.clearFlag(nuke.STARTLINE)\n\t\t\n\t\tgroup.addKnob(button1)\n\t\tgroup.addKnob(button2)\n\t\t\n\t\t\n\t# close dropdown\n\tif group.knob(\"endGroup\") == None:\n\t\tcloseKnob= nuke.Tab_Knob('endGroup', 'endGroup', -1)\n\t\tgroup.addKnob(closeKnob)\n\t\n\t# add spacer\n\tif group.knob(\"spacer\") == None:\n\t\tspacer = nuke.Text_Knob(\"spacer\",\"\",\" \")\n\t\tgroup.addKnob(spacer)\n\t\n\t# add divider line\n\tif group.knob(\"infoDivider\") == None:\n\t\tinfDivBut = nuke.Text_Knob(\"infoDivider\",\"\")\n\t\tgroup.addKnob(infDivBut)\n\t\t\n\t#add info text\n\tif group.knob(\"info\") == None:\n\t\tinfText = nuke.Text_Knob(\"info\",\"\",\"v 1.0 - 2019 - Tim Klink & Philipp Bauer - tiefkuehlbauer@gmail.com\")\n\t\tgroup.addKnob(infText)\n\t\n\n\t\n\t# copy values of checked (to-be-used) knobs to dictionary\n\tfor n in finList:\n\t\t\n\t\tif group.knob(n).getValue() == 1:\n\t\t\t\n\t\t\tminValueKnob = n+\"MinimumValue\"\n\t\t\tDriverValueDict\[n] = group.knob(minValueKnob).getValue()\n\t\t\n\tfor n in remainingKnobList:\n\t\tif group.knob(n).getValue() == 1:\n\t\t\tminValueKnob = n+\"MinimumValue\"\n\t\t\tDriverValueDict\[n] = group.knob(minValueKnob).getValue()\n\t\t\t\n\t\n\n\t#not the best way to manage property panel visibility, but works for now\n\tnuke.toNode(grp+\".dummyDriver\").hideControlPanel()\n\t\n\t\n\t#trigger callback\n\tnuke.toNode(grp+'.Controller').setSelected(True)\n\t\n\n\n" +STARTLINE}
+addUserKnob {22 UpdateDriverValues l "Update Driver Values" t "Update the driver values. Needed after changing the values of the driver after the initial grabing.\n\nThis only updates the values of the knobs that were already detected as having been changed in the earlier grab. If new values were changed they will not appear in the knoblist." -STARTLINE T "group=nuke.thisGroup()\ngrp = group.name()\n\n\n\n#clear non-needed nodes\ndef clear():\t\t\t\n    for n in nuke.allNodes():\n        if not ((n.name() == 'BaseInput') or (n.name()=='Output') or (n.name()=='genSwitch') or  (n.name()==\"dummyDefaultValues\") or (n.name()=='DriverInput') or ( n.name()=='Plate') or (n.name() == 'End') or (n.name()==\"Controller\") or (n.name()==\"dummyDriver\") or (n.name()==\"Mask\") or (n.name()==\"MaskInput\")):\n            nuke.delete(n)\n            \n\n\n\t\t\t\n\n# grab driver node\ngrabDriver=nuke.thisNode().input(2)\nwith nuke.toNode('root'):\n\tfor n in nuke.selectedNodes():\n\t\tn.setSelected(False)\n\tgrabDriver.setSelected(True)\n\n\tnuke.nodeCopy(\"%clipboard%\")\n\n\t\n\t\n# copy driver node\t\nwith nuke.toNode(grp):\n\tcopyNode = nuke.nodePaste(\"%clipboard%\")\n\tcopyNode.setSelected(False)\n\tnuke.show(copyNode)\n\t\n\tposX = nuke.toNode(grp+'.DriverInput').xpos()\n\tposY = nuke.toNode(grp+\".DriverInput\").ypos()\n\t\n\tfor n in nuke.allNodes():\n\t\tif n.name() == \"dummyDriver\":\n\t\t\tn.setName(\"OLDdummyDriverNode\")\n\t\t\t\n\tcopyNode.setName(\"dummyDriver\")\n\tcopyNode.setXpos(posX)\n\tcopyNode.setYpos(posY+150)\n\n\tclear()\n\t\n\t\n\t\n\t\n\t#not the best way to manage property panel visibility, but works for now\n\tnuke.toNode(grp+\".dummyDriver\").hideControlPanel()\n\t\n\t\n\t#trigger callback\n\tnuke.toNode(grp+'.Controller').setSelected(True)"}
+addUserKnob {26 ""}
+addUserKnob {26 stepText l "" +STARTLINE T "\n2. Adjust stepping and blur of step masks \n"}
+addUserKnob {41 steps l Steps t "Number of inbetween steps. The higher the number the finer the stepping." T Controller.steps}
+addUserKnob {41 stepBlur l "Step Blur" T Controller.stepBlur}
+addUserKnob {26 ""}
+addUserKnob {26 knobSelectText l "" t "All checked knobs will be intensified.\nThis step is optional.\n\nWhen using or adjusting remaining knobs caution should be used, as this might create random issues.\n" +STARTLINE T "\n3. De-/Refine which knobs to intensify and change their minimum\nvalues if needed. \n\nAfter any changes below here you need to press the Update button. \n"}
+addUserKnob {22 UpdateKnobs l "Update " t "press after having made any changes to the selections below" T "group=nuke.thisGroup()\n\nDriverValueDict.clear()\nDriverValueDict=\{\}\n\n\n\nfor n in finList:\n\t\n\tminValueKnob = n+\"MinimumValue\"\n\t\n\tif group.knob(n).getValue() == 1:\n\t\tDriverValueDict\[n] = group.knob(minValueKnob).getValue()\n\t\t\n\telse:\n\t\tif n in DriverValueDict:\n\t\t\tdel DriverValueDict\[n]\n\t\t\n\t\t\n\t\nfor n in remainingKnobList:\n\t\n\tminValueKnob = n+\"MinimumValue\"\n\t\n\tif group.knob(n).getValue() == 1:\n\t\t\n\t\tDriverValueDict\[n] = group.knob(minValueKnob).getValue()\n\t\t\n\telse:\n\t\tif n in DriverValueDict:\n\t\t\tdel DriverValueDict\[n]\t\t\n\t\t\n\t\t\n\n\t\t\n\t\nwith nuke.toNode(grp):\n\t\n\t#not the best way to manage property panel visibility, but works for now\n\tnuke.toNode(grp+\".dummyDriver\").hideControlPanel()\n\t\n\t\n\t#trigger callback\n\tnuke.toNode(grp+'.Controller').setSelected(True)\n\t" +STARTLINE}
+addUserKnob {6 size +STARTLINE}
+size true
+addUserKnob {78 sizeMinimumValue l "          minimum Value" -STARTLINE n 1}
+addUserKnob {20 RemainingKnobs n 2}
+addUserKnob {20 endGroup n -1}
+addUserKnob {26 spacer l "" +STARTLINE T " "}
+addUserKnob {26 infoDivider l "" +STARTLINE}
+addUserKnob {26 info l "" +STARTLINE T "v 1.0 - 2019 - Tim Klink & Philipp Bauer - tiefkuehlbauer@gmail.com"}
+}
+Input {
+inputs 0
+name DriverInput
+xpos -225
+ypos -295
+number 2
+}
+NoOp {
+inputs 0
+name Controller
+knobChanged "import math\nimport copy\n\n\ngroup = nuke.thisGroup()\nplate = nuke.toNode(group.name() + '.Plate')\nend = nuke.toNode(group.name() + '.End')\ncontr=nuke.toNode(group.name()+'.Controller')\ngenSwitch=nuke.toNode(group.name()+'.genSwitch')\ndummy=nuke.toNode(group.name()+'.dummyDriver')\nmask=nuke.toNode(group.name()+'.Mask')\n\n#clear non-needed nodes\ndef clear():\t\t\t\n    for n in nuke.allNodes():\n        if not ((n.name() == 'BaseInput') or (n.name()=='Output') or (n.name()=='genSwitch') or  (n.name()==\"dummyDefaultValues\") or (n.name()=='DriverInput') or ( n.name()=='Plate') or (n.name() == 'End') or (n.name()==\"Controller\") or (n.name()==\"dummyDriver\") or (n.name()==\"Mask\") or (n.name()==\"MaskInput\")):\n            nuke.delete(n)\n            \n\nsteps =int(contr\['steps'].getValue()) # number of cycles to generate intensity effect\nstartPosPStreamX= plate.xpos()\t\nstartPosPStreamY= plate.ypos()\nstartPosMStreamX= mask.xpos()\nstartPosMStreamY= mask.ypos()\n\ncoPoPlate=plate\ncoPoMask=mask\ncoPoMerge=plate\n\ngradeStepVal=1/steps  \nbpVal=0\nwpVal=bpVal+gradeStepVal\n\n\nblSize=group.knob(\"stepBlur\").getValue()    \n\ngroup.begin()\n\nclear()\n\nlenDict= len(DriverValueDict)\n\n\n\nfor i in range(1,steps+1):\n\n\t\n\t\n\tstartPosPStreamX += 550\n\tstartPosMStreamX += 550\n\t\n\tplateDot=nuke.nodes.Dot(xpos=startPosPStreamX , ypos=startPosPStreamY)\n\tplateDot.setInput(0,coPoPlate)\n\t\n\tmaskDot=nuke.nodes.Dot(xpos=startPosMStreamX , ypos = startPosMStreamY)\n\tmaskDot.setInput(0,coPoMask)\n\t\n\tcoPoPlate=plateDot\n\tcoPoMask = maskDot\n\t\n\tmGrade=nuke.nodes.Grade(channels= \"alpha\" , blackpoint = bpVal+((gradeStepVal)*i) ,   whitepoint = wpVal+((gradeStepVal)*i) , xpos=(startPosMStreamX-34) , ypos = (startPosMStreamY+350) , white_clamp = 1)\n\tmGrade.setInput(0, coPoMask)\n\t\n\tmBlur = nuke.nodes.Blur(size = blSize , xpos=(startPosMStreamX-34) , ypos = (startPosMStreamY+400) )\n\tmBlur.setInput(0, mGrade)\n\t\n\t\n\n\t\n\tfor n in nuke.selectedNodes():\n\t\tn.setSelected(False)\n\t\n\t\n\t\n\tdummy.setSelected(True)\n\tnuke.nodeCopy(\"%clipboard%\")\n\tdummyFraction=nuke.nodePaste(\"%clipboard%\")\n\tdummyFraction.setXpos(startPosPStreamX-34)\n\tdummyFraction.setYpos(startPosPStreamY+150)\n\tdummyFraction.setInput(0, coPoPlate)\n\t\n\t\n\n\tfor n in DriverValueDict: \n\t\n\t\tif i ==0:\n\t\t\tprc=0\n\t\telse:\n\t\t\tprc=(i/steps)\n\t\t\t\n\t\tif type(dummy.knob(n).getValue()) == list:\n\t\t\t\n\t\t\tListLenKnobs=len(dummy.knob(n).getValue())\t\n\t\t\ttempList = dummy.knob(n).getValue()\n\t\t\t\n\t\t\tfor g in range (0, ListLenKnobs):\n\t\t\t\t\n\t\t\t\t\n\t\t\t\tif type(DriverValueDict\[n]) == list:\n\t\t\t\t\tval=((tempList\[g]-DriverValueDict\[n]\[g])*prc)+DriverValueDict\[n]\[g]\n\t\t\t\t\tdummyFraction.knob(n).setValue(val, g)\n\t\t\t\telse:\n\t\t\t\t\tval=((tempList\[g]-DriverValueDict\[n])*prc)+DriverValueDict\[n]\n\t\t\t\t\tdummyFraction.knob(n).setValue(val, g)\n\t\t\t\t\n\t\telse:\n\t\t\tval=((dummy.knob(n).getValue()-DriverValueDict\[n])*prc)+DriverValueDict\[n]\n\t\t\t\n\t\t\tdummyFraction.knob(n).setValue(val)\n\t\n\n\t\n\tmerge = nuke.nodes.Merge2(operation = \"copy\" , xpos = startPosPStreamX -34 , ypos= startPosPStreamY + 350)\n\tmerge.setInput(0,coPoMerge)\n\tmerge.setInput(1,dummyFraction)\n\tmerge.setInput(2,mBlur)\n\tcoPoMerge =merge\n\t\n\tlenDriverValueDict = len(DriverValueDict)\n\t\n\tif lenDriverValueDict==0:\n\t\tgenSwitch.knob(\"which\").setValue(1)\n\n\telse:\n\t\tfor h in DriverValueDict:\n\t\t\t\n\t\t\tif group.knob(n).getValue() == 1:\n\t\t\t\tgenSwitch.knob(\"which\").setValue(0)\n\t\t\t\tpass\n\t\t\t\n\t\t\telse:\t\t\t\n\t\t\t\tgenSwitch.knob(\"which\").setValue(1)\n\t\n\t\t\nend.setInput(0, coPoMerge)\n\n\n\n\ngroup.end()\n\t\n\n"
+xpos -668
+ypos 38
+addUserKnob {20 User}
+addUserKnob {7 stepBlur l "Step Blur" t "Blur applied to mask on every intermediate step." R 0 15}
+stepBlur 10
+addUserKnob {3 steps t "Number of inbetween steps. The higher the value the finer the stepping."}
+steps 5
+}
+Input {
+inputs 0
+name BaseInput
+xpos 6
+ypos -296
+}
+Dot {
+name Plate
+label "Plate\n\n"
+xpos 40
+ypos 621
+}
+set Nd9092a80 [stack 0]
+Input {
+inputs 0
+name MaskInput
+xpos 184
+ypos -297
+number 1
+}
+Dot {
+name Mask
+label Mask
+xpos 218
+ypos 393
+}
+Dot {
+name Dot2
+xpos 768
+ypos 393
+}
+set Ndcf1e000 [stack 0]
+Dot {
+name Dot4
+xpos 1318
+ypos 393
+}
+set N88922380 [stack 0]
+Dot {
+name Dot6
+xpos 1868
+ypos 393
+}
+set Ndc0adc00 [stack 0]
+Dot {
+name Dot8
+xpos 2418
+ypos 393
+}
+set Nd996ce00 [stack 0]
+Dot {
+name Dot10
+xpos 2968
+ypos 393
+}
+Grade {
+channels alpha
+blackpoint 1
+whitepoint 1.2
+white_clamp true
+name Grade5
+xpos 2934
+ypos 743
+}
+Blur {
+size 10
+name Blur5
+xpos 2934
+ypos 793
+}
+push $Nd9092a80
+Dot {
+name Dot1
+xpos 590
+ypos 621
+}
+set Ne5f7880 [stack 0]
+Dot {
+name Dot3
+xpos 1140
+ypos 621
+}
+set Ne5f9500 [stack 0]
+Dot {
+name Dot5
+xpos 1690
+ypos 621
+}
+set Nd96d1500 [stack 0]
+Dot {
+name Dot7
+xpos 2240
+ypos 621
+}
+set N1d26a700 [stack 0]
+Dot {
+name Dot9
+xpos 2790
+ypos 621
+}
+Blur {
+size 12.2
+name dummyDriver5
+selected true
+xpos 2756
+ypos 771
+}
+push $Nd996ce00
+Grade {
+channels alpha
+blackpoint 0.8
+white_clamp true
+name Grade4
+xpos 2384
+ypos 743
+}
+Blur {
+size 10
+name Blur4
+xpos 2384
+ypos 793
+}
+push $N1d26a700
+Blur {
+size 9.76
+name dummyDriver4
+xpos 2206
+ypos 771
+}
+push $Ndc0adc00
+Grade {
+channels alpha
+blackpoint 0.6
+whitepoint 0.8
+white_clamp true
+name Grade3
+xpos 1834
+ypos 743
+}
+Blur {
+size 10
+name Blur3
+xpos 1834
+ypos 793
+}
+push $Nd96d1500
+Blur {
+size 7.32
+name dummyDriver3
+xpos 1656
+ypos 771
+}
+push $N88922380
+Grade {
+channels alpha
+blackpoint 0.4
+whitepoint 0.6
+white_clamp true
+name Grade2
+xpos 1284
+ypos 743
+}
+Blur {
+size 10
+name Blur2
+xpos 1284
+ypos 793
+}
+push $Ne5f9500
+Blur {
+size 4.88
+name dummyDriver2
+xpos 1106
+ypos 771
+}
+push $Ndcf1e000
+Grade {
+channels alpha
+blackpoint 0.2
+whitepoint 0.4
+white_clamp true
+name Grade1
+xpos 734
+ypos 743
+}
+Blur {
+size 10
+name Blur1
+xpos 734
+ypos 793
+}
+push $Ne5f7880
+Blur {
+size 2.44
+name dummyDriver1
+xpos 556
+ypos 771
+}
+push $Nd9092a80
+Merge2 {
+inputs 2+1
+operation copy
+name Merge1
+xpos 556
+ypos 971
+}
+Merge2 {
+inputs 2+1
+operation copy
+name Merge2
+xpos 1106
+ypos 971
+}
+Merge2 {
+inputs 2+1
+operation copy
+name Merge3
+xpos 1656
+ypos 971
+}
+Merge2 {
+inputs 2+1
+operation copy
+name Merge4
+xpos 2206
+ypos 971
+}
+Merge2 {
+inputs 2+1
+operation copy
+name Merge5
+xpos 2756
+ypos 971
+}
+Dot {
+name End
+label End
+xpos 217
+ypos 1311
+}
+Switch {
+inputs 2
+name genSwitch
+xpos 6
+ypos 1307
+}
+Output {
+name Output
+xpos 6
+ypos 1506
+}
+push $Nd9092a80
+Blur {
+channels rgba
+name dummyDefaultValues
+xpos -225
+ypos -119
+}
+push $Nd9092a80
+Blur {
+size 12.2
+name dummyDriver
+xpos -225
+ypos -145
+}
+end_group
